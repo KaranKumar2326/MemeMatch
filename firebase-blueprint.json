@@ -1,0 +1,47 @@
+{
+  "collections": {
+    "users": {
+      "description": "Registered and seeded candidates/profiles of MemeMatch",
+      "fields": {
+        "uid": "string",
+        "name": "string",
+        "age": "number",
+        "gender": "string",
+        "avatarEmoji": "string",
+        "avatarBg": "string",
+        "bio": "string",
+        "compatibleTitle": "string",
+        "persona": "object",
+        "isSeeded": "boolean",
+        "createdAt": "timestamp"
+      }
+    },
+    "swipes": {
+      "description": "User swiping actions to record match logic",
+      "fields": {
+        "fromUid": "string",
+        "toUid": "string",
+        "action": "string",
+        "createdAt": "timestamp"
+      }
+    },
+    "matches": {
+      "description": "Calculated compatibilities when swipes are reciprocated",
+      "fields": {
+        "matchId": "string",
+        "uids": "array",
+        "reason": "string",
+        "createdAt": "timestamp"
+      }
+    },
+    "messages": {
+      "description": "Real-time communication lines within matched pairs",
+      "fields": {
+        "sender": "string",
+        "text": "string",
+        "memeId": "string",
+        "timestamp": "timestamp"
+      }
+    }
+  }
+}

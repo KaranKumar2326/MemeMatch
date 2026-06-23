@@ -1,0 +1,6 @@
+{
+  "name": "Meme Dating App",
+  "description": "A full-stack mobile-inspired dating app where users match and chat based on their sense of humor and meme preferences.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
