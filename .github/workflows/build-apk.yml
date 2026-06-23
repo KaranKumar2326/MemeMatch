@@ -1,9 +1,9 @@
 name: Build Android APK
 
 on:
-  push:
-    branches: [main, master]
-  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+  # APK only needs rebuilding when you add new native Capacitor plugins.
+  # Web/UI updates are handled automatically via Firebase Hosting OTA (deploy-ota.yml).
+  workflow_dispatch: # Manual trigger only — run from the Actions tab when needed
 
 jobs:
   build:

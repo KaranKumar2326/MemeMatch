@@ -1,0 +1,43 @@
+name: Deploy to Firebase Hosting (OTA Update)
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch: # Manual trigger from Actions tab
+
+jobs:
+  deploy:
+    name: Build & Deploy Web App
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Build Vite frontend
+      - name: Build web assets
+        run: npx vite build
+        env:
+          VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      # 5. Deploy to Firebase Hosting
+      # This is the OTA update — all users get the new version on next app open!
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: atlantean-return-jnmq3
+          channelId: live
