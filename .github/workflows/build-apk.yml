@@ -50,11 +50,12 @@ jobs:
 
       # 8. Build the debug APK
       # Note: GitHub Actions runner already has ANDROID_SDK_ROOT set correctly.
-      # Do NOT override ANDROID_HOME — setting it to empty breaks SDK detection.
+      # We inject JAVA_HOME into gradle.properties to force Gradle to use Java 21.
       - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
+          ./gradlew assembleDebug --no-daemon
 
       # 9. Upload APK as a downloadable artifact
       - name: Upload APK artifact
