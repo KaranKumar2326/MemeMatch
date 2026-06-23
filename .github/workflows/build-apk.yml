@@ -40,8 +40,9 @@ jobs:
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       # 6. Sync web assets into Android project
+      # Use local binary directly to avoid npx version resolution issues
       - name: Sync Capacitor Android
-        run: npx cap sync android
+        run: ./node_modules/.bin/cap sync android
 
       # 7. Make gradlew executable
       - name: Make gradlew executable
