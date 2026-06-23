@@ -49,12 +49,12 @@ jobs:
         run: chmod +x android/gradlew
 
       # 8. Build the debug APK
+      # Note: GitHub Actions runner already has ANDROID_SDK_ROOT set correctly.
+      # Do NOT override ANDROID_HOME — setting it to empty breaks SDK detection.
       - name: Build Debug APK
         run: |
           cd android
-          ./gradlew assembleDebug --no-daemon
-        env:
-          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       # 9. Upload APK as a downloadable artifact
       - name: Upload APK artifact
