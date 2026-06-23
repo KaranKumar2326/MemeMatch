@@ -1,21 +1,35 @@
-name: Deploy to Firebase Hosting (OTA Update)
+name: Deploy to GitHub Pages (OTA Update)
 
 on:
   push:
     branches: [main, master]
   workflow_dispatch: # Manual trigger from Actions tab
 
+# Required permissions for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment at a time
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   deploy:
-    name: Build & Deploy Web App
+    name: Build & Deploy to GitHub Pages
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Node.js
+      # 2. Set up Node.js 22 (required by Capacitor CLI)
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -26,18 +40,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Build Vite frontend
+      # 4. Build Vite frontend → dist/
       - name: Build web assets
         run: npx vite build
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      # 5. Deploy to Firebase Hosting
-      # This is the OTA update — all users get the new version on next app open!
-      - name: Deploy to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
+      # 5. Configure GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 6. Upload dist/ folder to Pages
+      - name: Upload artifact to Pages
+        uses: actions/upload-pages-artifact@v3
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          projectId: atlantean-return-jnmq3
-          channelId: live
+          path: './dist'
+
+      # 7. Deploy — this is the OTA update!
+      # All users get the new version on next app open 🚀
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

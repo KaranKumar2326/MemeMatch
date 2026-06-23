@@ -5,12 +5,13 @@ const config: CapacitorConfig = {
   appName: 'MemeMatch',
   webDir: 'dist',
   server: {
-    // 🔥 OTA Updates: WebView loads from Firebase Hosting.
+    // 🚀 OTA Updates via GitHub Pages (100% free, no credit card)
     // Users always get the latest version on next app open — no Play Store update needed.
-    // Only rebuild & republish APK when you add new native Capacitor plugins.
-    url: 'https://atlantean-return-jnmq3.web.app',
+    // Only rebuild APK when adding new native Capacitor plugins.
+    url: 'https://karankumar2326.github.io/MemeMatch',
     cleartext: false
   }
 };
 
 export default config;
+
