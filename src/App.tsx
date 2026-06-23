@@ -443,27 +443,15 @@ export default function App() {
   const activeThreadObj = threads.find(t => t.candidateId === activeThreadId);
 
   return (
-    <div className="min-h-screen w-full bg-slate-100 flex items-center justify-center p-4">
-      
-      {/* Smart phone Bezel Frame */}
-      <div className="w-full max-w-[395px] h-[812px] rounded-[42px] border-[10px] border-slate-900 bg-white relative shadow-2xl overflow-hidden flex flex-col">
-        
-        {/* Notch details */}
-        <div className="absolute top-0 inset-x-0 h-5 bg-white z-55 flex justify-center items-center pointer-events-none select-none">
-          <div className="w-1/3 h-3 bg-slate-900 rounded-b-xl" />
-        </div>
-
-        {/* Status bar */}
-        <div className="h-6 bg-white shrink-0 flex justify-between items-center px-6 pt-1 text-[10px] font-bold text-slate-400 z-50 select-none">
-          <span>9:41</span>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[9px] text-emerald-500 font-mono">● LIVE</span>
-            <div className="w-4 h-2 rounded bg-slate-300" />
-          </div>
-        </div>
+    // Full screen — no phone mockup. Safe area insets handle real device notch/status bar.
+    <div className="w-full bg-white flex flex-col" style={{
+      minHeight: '100dvh',
+      paddingTop: 'env(safe-area-inset-top)',
+      paddingBottom: 'env(safe-area-inset-bottom)'
+    }}>
 
         {/* Dynamic State Router */}
-        <div className="flex-1 overflow-hidden relative flex flex-col bg-slate-50">
+        <div className="flex-1 overflow-hidden relative flex flex-col bg-slate-50" style={{minHeight: 0}}>
           
           {authLoading ? (
             <div className="flex flex-col flex-1 items-center justify-center p-6 text-center select-none">
@@ -679,6 +667,5 @@ export default function App() {
           )}
         </AnimatePresence>
       </div>
-    </div>
   );
 }

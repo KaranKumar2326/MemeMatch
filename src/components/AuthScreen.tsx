@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { auth } from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "firebase/auth";
 import { Sparkles, Flame, Eye, EyeOff, Mail, Lock, User, KeySquare, HelpCircle } from "lucide-react";
 import { playMessageSound } from "../audioUtils";
+import { Capacitor } from "@capacitor/core";
 
 interface AuthScreenProps {
   onAuthSuccess: (uid: string) => void;
@@ -17,15 +18,37 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    // Check if we returned from a Google redirect login
+    const checkRedirect = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          playMessageSound();
+          onAuthSuccess(result.user.uid);
+        }
+      } catch (err: any) {
+        console.error("Redirect auth check failed:", err);
+        setErrorMsg("Redirect authentication failed. Please try again.");
+      }
+    };
+    checkRedirect();
+  }, [onAuthSuccess]);
+
   const handleGoogleSignIn = async () => {
     setErrorMsg(null);
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      // Use signInWithPopup as highly recommended in workspace & iframe contexts
-      const result = await signInWithPopup(auth, provider);
-      playMessageSound();
-      onAuthSuccess(result.user.uid);
+      
+      // Android WebViews block window.open/popups by default, so use redirect flow on native
+      if (Capacitor.isNativePlatform()) {
+        await signInWithRedirect(auth, provider);
+      } else {
+        const result = await signInWithPopup(auth, provider);
+        playMessageSound();
+        onAuthSuccess(result.user.uid);
+      }
     } catch (err: any) {
       console.error(err);
       let friendlyError = "Google Authentication failed. Please retry.";
@@ -35,7 +58,6 @@ export default function AuthScreen({ onAuthSuccess }: AuthScreenProps) {
         friendlyError = "Google Login is not enabled. Please enable it in the Firebase console.";
       }
       setErrorMsg(friendlyError);
-    } finally {
       setIsLoading(false);
     }
   };
