@@ -15,23 +15,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Java 21 — capture output path for reliable Gradle config
+      # 2. Set up Java 21 — setup-java writes JAVA_HOME to $GITHUB_ENV automatically
       - name: Set up JDK 21
-        id: setup-java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      # 3. Force Gradle to use the exact Java 21 we just installed
-      # Writing to ~/.gradle/gradle.properties (Gradle user home) is the most
-      # reliable way — avoids CRLF issues in project gradle.properties
-      - name: Force Gradle to use Java 21
+      # 3. Verify Java 21 is active and pin it for Gradle
+      # IMPORTANT: Do NOT override JAVA_HOME in any subsequent step env: blocks.
+      # setup-java already set JAVA_HOME correctly via $GITHUB_ENV.
+      - name: Pin Java 21 for Gradle
         run: |
+          echo "Active Java: $JAVA_HOME"
+          java -version
           mkdir -p $HOME/.gradle
-          echo "org.gradle.java.home=${{ steps.setup-java.outputs.path }}" > $HOME/.gradle/gradle.properties
-          echo "Gradle will use Java at: ${{ steps.setup-java.outputs.path }}"
-          ${{ steps.setup-java.outputs.path }}/bin/java -version
+          echo "org.gradle.java.home=$JAVA_HOME" > $HOME/.gradle/gradle.properties
+          echo "Gradle pinned to: $JAVA_HOME"
 
       # 4. Set up Node.js
       - name: Set up Node.js
@@ -59,12 +59,12 @@ jobs:
         run: chmod +x android/gradlew
 
       # 9. Build the debug APK
+      # NOTE: No JAVA_HOME override here — setup-java already set it to Java 21.
+      # Overriding it with steps.setup-java.outputs.path was causing Java 17 fallback.
       - name: Build Debug APK
         run: |
           cd android
           ./gradlew assembleDebug --no-daemon
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
 
       # 10. Upload APK as a downloadable artifact
       - name: Upload APK artifact
