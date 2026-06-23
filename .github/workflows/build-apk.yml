@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   # APK only needs rebuilding when you add new native Capacitor plugins.
-  # Web/UI updates are handled automatically via Firebase Hosting OTA (deploy-ota.yml).
+  # Web/UI updates are handled automatically via GitHub Pages OTA (deploy-ota.yml).
   workflow_dispatch: # Manual trigger only — run from the Actions tab when needed
 
 jobs:
@@ -15,49 +15,58 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up Java 21 (required by latest @capacitor/android)
+      # 2. Set up Java 21 — capture output path for reliable Gradle config
       - name: Set up JDK 21
+        id: setup-java
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      # 3. Set up Node.js
+      # 3. Force Gradle to use the exact Java 21 we just installed
+      # Writing to ~/.gradle/gradle.properties (Gradle user home) is the most
+      # reliable way — avoids CRLF issues in project gradle.properties
+      - name: Force Gradle to use Java 21
+        run: |
+          mkdir -p $HOME/.gradle
+          echo "org.gradle.java.home=${{ steps.setup-java.outputs.path }}" > $HOME/.gradle/gradle.properties
+          echo "Gradle will use Java at: ${{ steps.setup-java.outputs.path }}"
+          ${{ steps.setup-java.outputs.path }}/bin/java -version
+
+      # 4. Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
 
-      # 4. Install Node dependencies
+      # 5. Install Node dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 5. Build the Vite frontend (produces dist/)
+      # 6. Build the Vite frontend (produces dist/)
       - name: Build web assets
         run: npx vite build
         env:
           VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      # 6. Sync web assets into Android project
-      # Use local binary directly to avoid npx version resolution issues
+      # 7. Sync web assets into Android project
       - name: Sync Capacitor Android
         run: ./node_modules/.bin/cap sync android
 
-      # 7. Make gradlew executable
+      # 8. Make gradlew executable
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      # 8. Build the debug APK
-      # Note: GitHub Actions runner already has ANDROID_SDK_ROOT set correctly.
-      # We inject JAVA_HOME into gradle.properties to force Gradle to use Java 21.
+      # 9. Build the debug APK
       - name: Build Debug APK
         run: |
           cd android
-          echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
           ./gradlew assembleDebug --no-daemon
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
 
-      # 9. Upload APK as a downloadable artifact
+      # 10. Upload APK as a downloadable artifact
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
